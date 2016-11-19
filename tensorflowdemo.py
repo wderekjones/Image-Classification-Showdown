@@ -35,37 +35,37 @@ import tensorflow as tf
 FLAGS = None
 
 
-#def main(_):
-  #mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
-
-  #print (type(mnist))
 
 train_data = np.loadtxt('Data/caltechTrainData.dat')
 train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
 test_data = train_data
 
-#np.size(test_data)
+
 
 num_examples = train_data.shape[0]
+
+print (num_examples)
+
 num_features = train_data.shape[1]
 
+print (num_features)
 
+print (train_labels.shape[0])
 
 
 
 # Create the model
 x = tf.placeholder(tf.float32, [None, num_features])
 W = tf.Variable(tf.zeros([num_features, 18]))
-b = tf.Variable(tf.zeros(18))
-y = tf.matmul(x, W) + b
+b = tf.Variable(tf.zeros([18]))
 
 # Define loss and optimizer
-y_ = tf.placeholder(tf.float32, [None, 18])
+y_ = tf.placeholder(tf.float32, [num_features,1])
 
 
-y = tf.nn.softmax(tf.matmul(x,W) + b)
+y = tf.nn.softmax(tf.matmul(x, W) + b)
 
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indicies=[1]))
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y)))
 
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
@@ -76,8 +76,11 @@ sess = tf.Session()
 sess.run(init)
 
 
-for i in range(10):
-    batch_xs, batch_ys = tf.train()
+sess.run(train_step, feed_dict={x: train_data, y_: train_labels})
+
+
+#for i in range(10):
+#    batch_xs, batch_ys = tf.train()
 
 
   # The raw formulation of cross-entropy,
