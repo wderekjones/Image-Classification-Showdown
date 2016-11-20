@@ -76,7 +76,7 @@ train_step = tf.train.GradientDescentOptimizer(0.025).minimize(cross_entropy)
 sess = tf.InteractiveSession()
 
 tf.initialize_all_variables().run()
-for i in range(10):
+for i in range(10000):
     sess.run(train_step, feed_dict={x: train_data, y_: one_hot_labels})
 
 
