@@ -35,83 +35,52 @@ import tensorflow as tf
 FLAGS = None
 
 
-
 train_data = np.loadtxt('Data/caltechTrainData.dat')
 train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
 test_data = train_data
 
 
-
 num_examples = train_data.shape[0]
-
-print (num_examples)
 
 num_features = train_data.shape[1]
 
-print (num_features)
+num_labels = 18
 
-print (train_labels.shape[0])
+
+one_hot_labels = np.zeros((num_examples,num_labels))
+
+for i in range(0,num_examples):
+    labeli = train_labels[i]
+    for j in range(0,num_labels):
+        if (labeli == (j+1)):
+            one_hot_labels[i][j] = 1;
+
+
+
+
 
 
 
 # Create the model
 x = tf.placeholder(tf.float32, [None, num_features])
-W = tf.Variable(tf.zeros([num_features, 18]))
-b = tf.Variable(tf.zeros([18]))
-
-# Define loss and optimizer
-y_ = tf.placeholder(tf.float32, [num_features,1])
-
-
+W = tf.Variable(tf.zeros([num_features, num_labels]))
+b = tf.Variable(tf.zeros([num_labels]))
 y = tf.nn.softmax(tf.matmul(x, W) + b)
 
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y)))
+# Define loss and optimizer
+y_ = tf.placeholder(tf.float32, [None, num_labels])
 
+cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
 train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
+sess = tf.InteractiveSession()
 
-init = tf.initialize_all_variables()
-
-sess = tf.Session()
-sess.run(init)
-
-
-sess.run(train_step, feed_dict={x: train_data, y_: train_labels})
+tf.initialize_all_variables().run()
+sess.run(train_step, feed_dict={x: train_data, y_: one_hot_labels})
 
 
-#for i in range(10):
-#    batch_xs, batch_ys = tf.train()
+correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print(sess.run(accuracy, feed_dict={x: train_data,
+                                      y_: one_hot_labels}))
 
-
-  # The raw formulation of cross-entropy,
-  #
-  #   tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.softmax(y)),
-  #                                 reduction_indices=[1]))
-  #
-  # can be numerically unstable.
-  #
-  # So here we use tf.nn.softmax_cross_entropy_with_logits on the raw
-  # outputs of 'y', and then average across the batch.
-#  cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
-#  train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
-
-#  sess = tf.InteractiveSession()
-  # Train
-#  tf.initialize_all_variables().run()
-#  for _ in range(1000):
-#    batch_xs, batch_ys = mnist.train.next_batch(100)
-#    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
-
-  # Test trained model
-#  correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-#  accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-#  print(sess.run(accuracy, feed_dict={x: mnist.test.images,
-#                                      y_: mnist.test.labels}))
-
-#if __name__ == '__main__':
-#    main()
-  #parser = argparse.ArgumentParser()
-  #parser.add_argument('--data_dir', type=str, default='/tmp/data',
-  #                    help='Directory for storing data')
-  #FLAGS = parser.parse_args()
-  #tf.app.run()
