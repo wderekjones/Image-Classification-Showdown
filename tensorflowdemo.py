@@ -24,13 +24,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
+from sklearn import preprocessing
 
-import argparse
 import numpy as np
-
-# Import data
-from tensorflow.examples.tutorials.mnist import input_data
-
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import tensorflow as tf
 
 FLAGS = None
@@ -47,9 +46,34 @@ def one_hot_encoding (t_ls,num_ls):
 
 
 
+
+
+
 train_data = np.loadtxt('Data/caltechTrainData.dat')
-train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
 test_data = train_data
+extra_feats = np.divide(train_data, 255.0)
+
+train_data = np.concatenate((train_data, extra_feats), axis=1)
+
+
+
+train_data = preprocessing.scale(train_data)
+
+train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
+#test_data = train_data
+
+
+offset = 10
+
+for i in range(test_data.shape[0] - (test_data.shape[0] - offset)):
+
+    im_train = test_data[i,:].reshape((30,30,3), order='F')
+
+    plt.imshow(im_train)
+    plt.show()
+
+
+
 
 #mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
@@ -74,7 +98,7 @@ y = tf.nn.softmax(tf.matmul(x, W) + b)
 y_ = tf.placeholder(tf.float32, [None, num_labels])
 
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+train_step = tf.train.GradientDescentOptimizer(.5).minimize(cross_entropy)
 
 sess = tf.InteractiveSession()
 
@@ -84,17 +108,23 @@ correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 prediction = tf.argmax(y, 1)
 
-#for i in range(1000):
 
-    # figure a way to split training data and training labels into batches and train over each step
-batch_xs, test_xs, batch_ys, test_ys = train_test_split(train_data,train_labels,test_size=0.3,random_state=1)
+kf = KFold(n_splits=10)
 
-batch_ys = one_hot_encoding(batch_ys,num_labels)
-test_ys = one_hot_encoding(test_ys,num_labels)
-sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
-print(sess.run(accuracy, feed_dict={x: test_xs ,
-                                       y_: test_ys }))
-print(prediction.eval(feed_dict={x: train_data}))
+average_performance = 0.0
+
+for train, test in kf.split(train_data, train_labels):
+
+    batch_xs = train_data[train]
+    batch_ys = one_hot_encoding(train_labels[train], num_labels)
+
+    test_xs = train_data[test]
+    test_ys = one_hot_encoding(train_labels[test], num_labels)
+
+    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+    print(sess.run(accuracy, feed_dict={x: test_xs, y_: test_ys}))
+
+#print(prediction.eval(feed_dict={x: train_data}))
 
 
 
