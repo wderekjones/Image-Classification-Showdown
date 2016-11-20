@@ -45,9 +45,20 @@ def one_hot_encoding (t_ls,num_ls):
     return encoding
 
 
+def weight_variable(shape):
+  initial = tf.truncated_normal(shape, stddev=0.1)
+  return tf.Variable(initial)
 
+def bias_variable(shape):
+  initial = tf.constant(0.1, shape=shape)
+  return tf.Variable(initial)
 
+def conv2d(x, W):
+  return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
 
+def max_pool_2x2(x):
+  return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
+                        strides=[1, 2, 2, 1], padding='SAME')
 
 train_data = np.loadtxt('Data/caltechTrainData.dat')
 test_data = train_data
@@ -65,12 +76,12 @@ train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
 
 offset = 10
 
-for i in range(test_data.shape[0] - (test_data.shape[0] - offset)):
+#for i in range(test_data.shape[0] - (test_data.shape[0] - offset)):
 
-    im_train = test_data[i,:].reshape((30,30,3), order='F')
+#    im_train = test_data[i,:].reshape((30,30,3), order='F')
 
-    plt.imshow(im_train)
-    plt.show()
+#    plt.imshow(im_train)
+#    plt.show()
 
 
 
@@ -85,7 +96,7 @@ num_features = train_data.shape[1]
 num_labels = 18
 
 
-one_hot_labels = one_hot_encoding(train_labels,num_labels)
+one_hot_labels = one_hot_encoding(train_labels, num_labels)
 
 
 # Create the model
@@ -98,7 +109,7 @@ y = tf.nn.softmax(tf.matmul(x, W) + b)
 y_ = tf.placeholder(tf.float32, [None, num_labels])
 
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, y_))
-train_step = tf.train.GradientDescentOptimizer(.5).minimize(cross_entropy)
+train_step = tf.train.GradientDescentOptimizer(.6).minimize(cross_entropy)
 
 sess = tf.InteractiveSession()
 
@@ -107,6 +118,10 @@ tf.initialize_all_variables().run()
 correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 prediction = tf.argmax(y, 1)
+
+
+
+
 
 
 kf = KFold(n_splits=10)
@@ -124,7 +139,10 @@ for train, test in kf.split(train_data, train_labels):
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
     print(sess.run(accuracy, feed_dict={x: test_xs, y_: test_ys}))
 
-#print(prediction.eval(feed_dict={x: train_data}))
+print(prediction.eval(feed_dict={x: train_data}))
+print (sess.run(accuracy, feed_dict={x: train_data, y_: one_hot_labels}))
+
+
 
 
 
