@@ -8,6 +8,8 @@ train_data = np.loadtxt('Data/caltechTrainData.dat')
 train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
 test_data = np.loadtxt('Data/caltechTestData.dat')
 
+num_labels = 18
+
 clf = LogisticRegression(solver = 'lbfgs', multi_class='multinomial')
 
 
@@ -24,3 +26,10 @@ for i in range(len(predictions)):
 
 accuracy = float(correct_count) / float(len(predictions))
 print (accuracy)
+
+
+confusion_matrix = np.zeros((num_labels,num_labels),float)
+
+
+
+
