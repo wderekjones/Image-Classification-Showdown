@@ -34,24 +34,14 @@ FLAGS = None
 def main(_):
   mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
 
-
-
-
-  train = mnist.train.images
-
-  num_examples = train.shape[0]
-  num_features = train.shape[1]
-  num_labels = 10
-
-
   # Create the model
-  x = tf.placeholder(tf.float32, [None, num_features])
-  W = tf.Variable(tf.zeros([num_features, num_labels]))
-  b = tf.Variable(tf.zeros([num_labels]))
+  x = tf.placeholder(tf.float32, [None, 784])
+  W = tf.Variable(tf.zeros([784, 10]))
+  b = tf.Variable(tf.zeros([10]))
   y = tf.matmul(x, W) + b
 
   # Define loss and optimizer
-  y_ = tf.placeholder(tf.float32, [None, num_labels])
+  y_ = tf.placeholder(tf.float32, [None, 10])
 
   # The raw formulation of cross-entropy,
   #
@@ -72,23 +62,11 @@ def main(_):
     batch_xs, batch_ys = mnist.train.next_batch(100)
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
-  batch_xs, batch_ys = mnist.train.next_batch(100)
-
-  print (batch_xs.shape[0])
-
-  print (batch_xs.shape[1])
-
-  print (batch_ys.shape[0])
-
-  print (batch_ys.shape[1])
-
   # Test trained model
   correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
   accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
   print(sess.run(accuracy, feed_dict={x: mnist.test.images,
                                       y_: mnist.test.labels}))
-
-
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

@@ -71,7 +71,6 @@ train_data = np.concatenate((train_data, extra_feats), axis=1)
 train_data = preprocessing.scale(train_data)
 
 train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
-#test_data = train_data
 
 
 offset = 10
@@ -83,13 +82,6 @@ offset = 10
 #    plt.imshow(im_train)
 #    plt.show()
 
-
-
-
-#mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-
-#train_data = mnist.train.images
-#train_labels = mnist.train.labels
 
 num_examples = train_data.shape[0]
 num_features = train_data.shape[1]
