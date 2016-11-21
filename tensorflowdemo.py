@@ -31,6 +31,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import tensorflow as tf
+import random
 
 FLAGS = None
 
@@ -67,7 +68,7 @@ extra_feats = np.divide(train_data, 255.0)
 train_data = np.concatenate((train_data, extra_feats), axis=1)
 
 
-
+# normalize the data
 train_data = preprocessing.scale(train_data)
 
 train_labels = np.loadtxt('Data/caltechTrainLabel.dat')
@@ -94,7 +95,7 @@ one_hot_labels = one_hot_encoding(train_labels, num_labels)
 # Create the model
 x = tf.placeholder(tf.float32, [None, num_features])
 W = tf.Variable(tf.zeros([num_features, num_labels]))
-b = tf.Variable(tf.zeros([num_labels]))
+b = tf.Variable(tf.ones([num_labels]))
 y = tf.nn.softmax(tf.matmul(x, W) + b)
 
 # Define loss and optimizer
@@ -113,23 +114,25 @@ prediction = tf.argmax(y, 1)
 
 
 
+training_its = 100
 
+for i in range(training_its):
 
+    num_folds = random.randrange(2,10)
+    kf = KFold(n_splits=num_folds)
 
-kf = KFold(n_splits=10)
+    average_performance = 0.0
 
-average_performance = 0.0
+    for train, test in kf.split(train_data, train_labels):
 
-for train, test in kf.split(train_data, train_labels):
+        batch_xs = train_data[train]
+        batch_ys = one_hot_encoding(train_labels[train], num_labels)
 
-    batch_xs = train_data[train]
-    batch_ys = one_hot_encoding(train_labels[train], num_labels)
+        test_xs = train_data[test]
+        test_ys = one_hot_encoding(train_labels[test], num_labels)
 
-    test_xs = train_data[test]
-    test_ys = one_hot_encoding(train_labels[test], num_labels)
-
-    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
-    print(sess.run(accuracy, feed_dict={x: test_xs, y_: test_ys}))
+        sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+        print(sess.run(accuracy, feed_dict={x: test_xs, y_: test_ys}))
 
 print(prediction.eval(feed_dict={x: train_data}))
 print (sess.run(accuracy, feed_dict={x: train_data, y_: one_hot_labels}))
